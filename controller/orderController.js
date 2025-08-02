@@ -2,7 +2,7 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from "stripe";
 
-const STRIPE_SECRET_KEY = "sk_test_your_real_key_here";
+// const STRIPE_SECRET_KEY = "sk_test_your_real_key_here";
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
