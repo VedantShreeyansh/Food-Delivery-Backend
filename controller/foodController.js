@@ -50,4 +50,16 @@ const removeFood = async (req, res) => {
   }
 };
 
-export { addFood, listFood, removeFood };
+// Check against any Existing Food Item
+const existingFood = async (req, res) => {
+  try {
+    const food = await foodModel.findOne({ name: req.body.name });
+    res.json({ success: true, data: food });
+  }
+  catch (err) {
+    console.log(err);
+    res.json({ success: false, message: err});
+  }
+}
+
+export { addFood, listFood, removeFood, existingFood };
