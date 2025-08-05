@@ -2,10 +2,9 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from "stripe";
 
-const STRIPE_SECRET_KEY = "sk_test_your_real_key_here"
 
 // ✅ Use environment variable instead of hardcoded key
-const stripe = new Stripe(STRIPE_SECRET_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 // placing user order for frontend
 const placeOrder = async (req,res) => {
