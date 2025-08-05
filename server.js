@@ -15,7 +15,33 @@ console.log("STRIPE_SECRET_KEY value:", process.env.STRIPE_SECRET_KEY);
 
 // app config
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
+
+// Environment detection
+const isProduction = process.env.NODE_ENV === 'production';
+const isDevelopment = !isProduction;
+
+console.log(`Running in ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'} mode`);
+
+const corsOptions = {
+    origin: function (origin, callback){
+        const allowedOrigins = [
+            'http://localhost:5173',
+            'http://localhost:3000',
+            'https://your-frontend-app.vercel.app',
+            'https://your-admin-app.vercel.app'
+        ];
+
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true
+};
 
 //middleware
 app.use(express.json());
@@ -41,11 +67,15 @@ app.use("/api/order",orderRouter);
 
 // to request the data from the server
 app.get("/", (req,res)=>{
-    res.send("Backend is working");
+    res.json({
+        message: "Food Delivery Backend API is running!",
+        environment: isProduction ? 'production' : 'development',
+        timestamp: new Date().toISOString()
+    });
 });
 
 app.listen(PORT,()=>{
-    console.log(`Server started on http://localhost:${PORT}`);
+    console.log(`Server started on ${isProduction ? 'Production' : 'Local'} - Port: $`);
 })
 
 // mongodb+srv://greatstack:33858627@cluster0.e5nmbpl.mongodb.net/?
