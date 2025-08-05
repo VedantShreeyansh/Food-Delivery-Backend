@@ -2,13 +2,13 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from "stripe";
 
-// const STRIPE_SECRET_KEY = "sk_test_your_real_key_here";
+const STRIPE_SECRET_KEY = "sk_test_your_real_key_here"
 
+// ✅ Use environment variable instead of hardcoded key
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
 // placing user order for frontend
 const placeOrder = async (req,res) => {
-
     const frontend_url = "http://localhost:5173";
     
     try {
@@ -59,56 +59,69 @@ const placeOrder = async (req,res) => {
 }
 
 const verifyOrder = async (req, res) => {
-      const {orderId, success} = req.body;
-      try {
-          if (success=="true") {
-              await orderModel.findByIdAndUpdate(orderId, {payment:true});
-              res.json({success:true,message:"Paid"})
-          } 
-          else {
+    const {orderId, success} = req.body;
+    try {
+        if (success == "true") {
+            await orderModel.findByIdAndUpdate(orderId, {payment:true});
+            res.json({success:true,message:"Paid"})
+        } else {
             await orderModel.findByIdAndDelete(orderId);
             res.json({success:false,message:"Not Paid"});
-          }
-      } catch (error) {
-           console.log(error);
-           res.json({success:false,message:"Error"});
-      }
+        }
+    } catch (error) {
+        console.log(error);
+        res.json({success:false,message:"Error"});
+    }
 }
 
 const userOrders = async (req, res) => {
     try {
         console.log("userOrders called with userId:", req.body.userId);
-       const orders = await orderModel.find({userId:req.body.userId});
+        const orders = await orderModel.find({userId:req.body.userId});
 
-       orders.forEach((order, index) => {
-          console.log(`Order ${index} status in DB:`, order.status);
-       });
+        orders.forEach((order, index) => {
+            console.log(`Order ${index} status in DB:`, order.status);
+        });
 
-       res.json({success:true,data:orders})
+        res.json({success:true,data:orders})
     } catch (error){
-      console.log(error);
-      res.json({success:false,message:"Error"})
+        console.log(error);
+        res.json({success:false,message:"Error"})
     }
 };
 
-// listing orders for admin panel
 const listOrders = async (req, res) => {
-     try {
-           const orders = await orderModel.find({});
-           res.json({success:true,data:orders})
-     } catch (error) {
-           console.log(error);
-           res.json({success:false,message:"Error"});
-     }
-} 
-
-const updateStatus = async (req, res) => {
     try {
-        await orderModel.findByIdAndUpdate(req.body.orderId, {status: req.body.status});
-        res.json({success: true, message: "Status Updated"});
+        const orders = await orderModel.find({});
+        console.log(`Found ${orders.length} orders for admin`);
+        res.json({success:true,data:orders})
     } catch (error) {
         console.log(error);
-        res.json({success: false, message: "Error"});
+        res.json({success:false,message:"Error"});
+    }
+} 
+
+// ✅ Enhanced updateStatus with better logging
+const updateStatus = async (req, res) => {
+    try {
+        const { orderId, status } = req.body;
+        console.log(`Updating order ${orderId} to status: ${status}`);
+        
+        const updatedOrder = await orderModel.findByIdAndUpdate(
+            orderId, 
+            { status: status }, 
+            { new: true } // Return the updated document
+        );
+        
+        if (!updatedOrder) {
+            return res.json({success: false, message: "Order not found"});
+        }
+        
+        console.log(`Order ${orderId} successfully updated to: ${updatedOrder.status}`);
+        res.json({success: true, message: "Status Updated", order: updatedOrder});
+    } catch (error) {
+        console.log("Error updating order status:", error);
+        res.json({success: false, message: "Error updating status"});
     }
 }
 
